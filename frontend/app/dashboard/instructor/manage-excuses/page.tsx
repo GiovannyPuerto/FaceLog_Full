@@ -37,7 +37,7 @@ export default function ManageExcusesPage() {
     const [error, setError] = useState(null);
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
     const [currentExcuseToReview, setCurrentExcuseToReview] = useState(null);
-    const [reviewComment, setReviewComment] = ('');
+    const [reviewComment, setReviewComment] = useState('');
     const [filters, setFilters] = useState({ student: '', date_from: '', date_to: '', status: 'pending' });
 
     const fetchExcuses = async () => {
