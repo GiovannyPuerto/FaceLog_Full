@@ -93,8 +93,8 @@ export default function RegisterPage() {
     const [theme, setTheme] = useState('light');
 
     const [isCameraOpen, setIsCameraOpen] = useState(false);
-    const [faceImages, setFaceImages] = useState([]); // Stores actual image files/blobs
-    const [faceImagePreviews, setFaceImagePreviews] = useState([]); // Stores URLs for previews
+    const [faceImage, setFaceImage] = useState(null); // Stores actual image file/blob
+    const [faceImagePreview, setFaceImagePreview] = useState(null); // Stores URL for preview
 
     useEffect(() => {
         const savedTheme = localStorage.getItem('theme') || 'light';
@@ -124,29 +124,33 @@ export default function RegisterPage() {
     // New functions
     const handleCapture = (imageBlob) => {
         const newImage = new File([imageBlob], `face_${Date.now()}.jpeg`, { type: 'image/jpeg' });
-        setFaceImages((prevImages) => [...prevImages, newImage]);
-        setFaceImagePreviews((prevPreviews) => [...prevPreviews, URL.createObjectURL(imageBlob)]);
-        // Optionally close the modal after capture, or keep it open for multiple captures
-        // setIsCameraOpen(false);
+        setFaceImage(newImage);
+        if (faceImagePreview) {
+            URL.revokeObjectURL(faceImagePreview); // Clean up previous preview URL
+        }
+        setFaceImagePreview(URL.createObjectURL(imageBlob));
+        setIsCameraOpen(false); // Close modal after capturing the single image
     };
 
-    const handleRemoveImage = (indexToRemove) => {
-        setFaceImages((prevImages) => prevImages.filter((_, index) => index !== indexToRemove));
-        setFaceImagePreviews((prevPreviews) => prevPreviews.filter((_, index) => index !== indexToRemove));
+    const handleRemoveImage = () => { // No index needed, just remove the single image
+        if (faceImagePreview) {
+            URL.revokeObjectURL(faceImagePreview); // Clean up preview URL
+        }
+        setFaceImage(null);
+        setFaceImagePreview(null);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (formData.password !== formData.password2) { alert(t("passwords_do_not_match")); return; }
+        if (!faceImage) { alert(t("register_no_face_image_error")); return; } // New validation
 
         const dataToSubmit = new FormData();
         for (const key in formData) {
             dataToSubmit.append(key, formData[key]);
         }
-        // Append face images to formData
-        faceImages.forEach((image) => {
-            dataToSubmit.append('face_images', image);
-        });
+        // Append single face image to formData
+        dataToSubmit.append('face_image', faceImage); // Changed from 'face_images' to 'face_image'
 
         await register(dataToSubmit);
     };
@@ -674,7 +678,7 @@ export default function RegisterPage() {
                                             required 
                                             className="modern-input"
                                         />
-                                    </Form.Group>
+                                                                    </Form.Group>
                                 </Col>
                                 <Col md={6}>
                                     <Form.Group className="mb-3">
@@ -755,28 +759,29 @@ export default function RegisterPage() {
                                     variant="info" 
                                     onClick={() => setIsCameraOpen(true)}
                                     className="modern-button-info mb-3"
+                                    disabled={!!faceImage} // Disable if an image is already captured
                                 >
                                      {t('take_photo_button')}
                                 </Button>
                                 <div className="d-flex flex-wrap justify-content-center">
-                                    {faceImagePreviews.map((previewUrl, index) => (
-                                        <div key={index} className="photo-preview">
+                                    {faceImagePreview && ( // Only show if a preview exists
+                                        <div className="photo-preview">
                                             <Image 
-                                                src={previewUrl} 
-                                                alt={t('photo_preview_alt', { index: index + 1 })} 
+                                                src={faceImagePreview} 
+                                                alt={t('photo_preview_alt', { index: 1 })} 
                                                 roundedCircle 
                                                 style={{ width: '120px', height: '120px', objectFit: 'cover' }} 
                                             />
                                             <div
                                                 className="photo-remove-btn"
-                                                onClick={() => handleRemoveImage(index)}
+                                                onClick={handleRemoveImage} // No index needed
                                             >
                                                 ×
                                             </div>
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
-                                {faceImagePreviews.length === 0 && (
+                                {!faceImagePreview && ( // Show message if no photo captured
                                     <p className="modern-text mt-3 mb-0">
                                          {t('no_photos_captured_yet')}
                                     </p>
@@ -793,7 +798,7 @@ export default function RegisterPage() {
                                 variant="success" 
                                 type="submit" 
                                 className="modern-button-success w-100 mt-4" 
-                                disabled={loading || faceImages.length === 0}
+                                disabled={loading || !faceImage} // Disable if no faceImage
                             >
                                 {loading ? (
                                     <>
