@@ -8,6 +8,7 @@ from datetime import datetime
 import logging
 from django.conf import settings
 from django.utils.timezone import make_aware
+from django.core.cache import cache # Import cache
 
 from attendance.models import Attendance, Ficha
 from .models import FaceEncoding, FaceVerificationLog, FaceRecognitionSettings
@@ -40,24 +41,36 @@ def recognize_faces_in_stream(image_file, session_id):
         logger.info(f"Usando umbral de confianza: {settings.confidence_threshold}")
 
         ficha = Ficha.objects.get(sessions__id=session_id)
-        students = ficha.students.all()
-        logger.info(f"Ficha {ficha.numero_ficha} tiene {students.count()} estudiantes.")
-
-        known_encodings = []
-        known_student_ids = []
-        for student in students:
-            if hasattr(student, 'face_encoding_data') and student.face_encoding_data.is_active:
-                encoding_array = student.face_encoding_data.get_encoding_array()
-                if encoding_array is not None and len(encoding_array) == 128:
-                    known_encodings.append(encoding_array)
-                    known_student_ids.append(student.id)
-                elif encoding_array is not None:
-                    logger.warning(f"La codificación para el estudiante {student.id} tiene una longitud incorrecta: {len(encoding_array)}. Se omitirá.")
         
-        if not known_encodings:
-            logger.warning(f"No se encontraron codificaciones faciales activas para la ficha {ficha.numero_ficha}.")
-            return {"error": "No hay rostros registrados o activos para esta ficha."}
-        logger.info(f"Se cargaron {len(known_encodings)} codificaciones faciales conocidas.")
+        # --- Caching for known encodings ---
+        cache_key = f"ficha_encodings_{ficha.id}"
+        cached_data = cache.get(cache_key)
+
+        if cached_data:
+            known_encodings, known_student_ids = cached_data
+            logger.info(f"Codificaciones cargadas desde caché para ficha {ficha.numero_ficha}.")
+        else:
+            students = ficha.students.all()
+            logger.info(f"Ficha {ficha.numero_ficha} tiene {students.count()} estudiantes. Cargando desde DB.")
+
+            known_encodings = []
+            known_student_ids = []
+            for student in students:
+                if hasattr(student, 'face_encoding_data') and student.face_encoding_data.is_active:
+                    encoding_array = student.face_encoding_data.get_encoding_array()
+                    if encoding_array is not None and len(encoding_array) == 128:
+                        known_encodings.append(encoding_array)
+                        known_student_ids.append(student.id)
+                    elif encoding_array is not None:
+                        logger.warning(f"La codificación para el estudiante {student.id} tiene una longitud incorrecta: {len(encoding_array)}. Se omitirá.")
+            
+            if not known_encodings:
+                logger.warning(f"No se encontraron codificaciones faciales activas para la ficha {ficha.numero_ficha}.")
+                return {"error": "No hay rostros registrados o activos para esta ficha."}
+            
+            cache.set(cache_key, (known_encodings, known_student_ids), 3600) # Cache for 1 hour
+            logger.info(f"Se cargaron {len(known_encodings)} codificaciones faciales conocidas y se guardaron en caché.")
+        # --- End Caching ---
 
         stream_image = face_recognition.load_image_file(image_file)
         stream_locations = face_recognition.face_locations(stream_image, model=settings.face_detection_model)
