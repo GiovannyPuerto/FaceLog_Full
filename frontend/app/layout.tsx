@@ -5,18 +5,27 @@ import AppNavbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import useAuth from '../hooks/useAuth';
 import I18nProvider from '../components/I18nProvider'; // New import
+import LoadingSpinner from '../components/LoadingSpinner'; // Importar LoadingSpinner
+import { usePathname } from 'next/navigation';
 
 function AppLayout({ children }) {
-    const { user, isSidebarOpen } = useAuth();
+    const { user, isSidebarOpen, loading } = useAuth(); // Obtener el estado loading
+    const pathname = usePathname();
+
+    const noLayoutPages = ['/login', '/register', '/forgot-password', '/reset-password'];
+    const isAuthPage = noLayoutPages.some(path => pathname.startsWith(path));
+
+    const showLayout = user && !isAuthPage;
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh' }}>
+            {loading && <LoadingSpinner />} {/* Mostrar spinner si está cargando */}
             {/* Sidebar fijo solo si hay usuario */}
-            {user && <Sidebar />}
+            {showLayout && <Sidebar />}
 
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 {/* Navbar sticky */}
-                {user && <AppNavbar />}
+                {showLayout && <AppNavbar />}
 
                 {/* Contenido principal */}
                 <main
@@ -24,10 +33,8 @@ function AppLayout({ children }) {
                     style={{
                         flex: 1,
                         overflowY: 'auto',
-                        marginTop: user ? '0px' : '0',
-                        marginLeft: user 
-                            ? (isSidebarOpen ? '225px' : '0px')  // 👈 aquí la magia
-                            : '0',
+                        marginTop: showLayout ? '0px' : '0',
+                        marginLeft: showLayout && isSidebarOpen ? '225px' : '0px',
                         transition: 'all 0.3s ease',
                         padding: '1rem'
                     }}

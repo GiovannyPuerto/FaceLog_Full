@@ -155,8 +155,8 @@ const Sidebar = () => {
                     color: var(--text-primary) !important;
                     font-weight: 500 !important;
                     font-size: 0.95rem !important;
-                    padding: 16px 20px !important; /* Increased padding */
-                    margin: 0 0 12px 0 !important; /* Increased bottom margin between links */
+                    padding: 18px 22px !important; /* Increased padding */
+                    margin: 0 0 16px 0 !important; /* Increased bottom margin between links */
                     border-radius: 14px !important; /* Slightly more rounded */
                     transition: all 0.3s ease !important;
                     text-decoration: none !important;

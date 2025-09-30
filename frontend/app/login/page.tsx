@@ -8,6 +8,8 @@ import Image from 'next/image';
 import { Sun, Moon, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import '../../i18n';
+import { useHydrated } from '../../hooks/useHydrated';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function LoginPage() {
     const [username, setUsername] = useState('');
@@ -15,6 +17,7 @@ export default function LoginPage() {
     const { login, error, loading } = useAuth();
     const { t, i18n } = useTranslation();
     const [theme, setTheme] = useState('light');
+    const hydrated = useHydrated();
 
     useEffect(() => {
         const savedTheme = localStorage.getItem('theme') || 'light';
@@ -44,6 +47,10 @@ export default function LoginPage() {
         e.preventDefault();
         login(username, password);
     };
+
+    if (!hydrated) {
+        return <LoadingSpinner />;
+    }
 
     return (
         <>

@@ -5,6 +5,8 @@ import api from '../../../../lib/api';
 import useAuth from '../../../../hooks/useAuth';
 import { Container, Card, Button, Form, Badge, Row, Col, Spinner, Alert } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
+import { useHydrated } from '../../../../hooks/useHydrated';
+import LoadingSpinner from '../../../../components/LoadingSpinner';
 
 // Helper para obtener color basado en estado
 const getStatusColor = (status) => {
@@ -24,6 +26,7 @@ export default function StudentAttendancePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [filters, setFilters] = useState({ date_from: '', date_to: '', status: '' });
+    const hydrated = useHydrated();
 
     const fetchAttendanceLogs = async () => {
         if (!user) return;
@@ -54,6 +57,10 @@ export default function StudentAttendancePage() {
     const handleApplyFilters = () => {
         fetchAttendanceLogs();
     };
+
+    if (!hydrated) {
+        return <LoadingSpinner />;
+    }
 
     if (loading) {
         return (
