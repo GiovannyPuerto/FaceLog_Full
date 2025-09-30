@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../../../lib/api';
 import useAuth from '../../../../hooks/useAuth';
-import { useTranslation } from 'react-i18next'; // Added import
+import { useTranslation } from 'react-i18next';
 
 const StatCard = ({ title, value, extra = null, gradient, icon }) => (
     <div
@@ -55,12 +55,12 @@ export default function GlobalReportsPage() {
             setStats(statsResponse.data);
             setError(null);
         } catch (err) {
-            setError(t('global_reports_error_loading')); // Translated
+            setError(t('global_reports_error_loading'));
             console.error("Failed to fetch page data", err);
             if (err.response && (err.response.status === 401 || err.response.status === 403)){
-                setError("No tienes permiso para ver los reportes.");
+                setError(t('global_reports_no_permission'));
             } else {
-                setError("No se pudieron cargar los datos de la página.");
+                setError(t('global_reports_generic_error'));
             }
         } finally {
             setLoading(false);
@@ -68,10 +68,10 @@ export default function GlobalReportsPage() {
     };
 
     useEffect(() => {
-        if (user) { // Only fetch data if user is authenticated
+        if (user) {
             fetchGlobalStats();
         }
-    }, [user]); // Re-run when user object changes
+    }, [user]);
 
     const handleFilterChange = (e) => {
         setFilters({ ...filters, [e.target.name]: e.target.value });
@@ -125,6 +125,8 @@ export default function GlobalReportsPage() {
                     --stat5-gradient: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
                     --input-bg: #ffffff;
                     --input-border: #e9ecef;
+                    --list-bg: #f8f9fa;
+                    --list-item-hover: #e9ecef;
                 }
 
                 [data-theme="dark"] {
@@ -148,6 +150,8 @@ export default function GlobalReportsPage() {
                     --stat5-gradient: linear-gradient(135deg, #f85149 0%, #da3633 100%);
                     --input-bg: #21262d;
                     --input-border: #30363d;
+                    --list-bg: #0d1117;
+                    --list-item-hover: #21262d;
                 }
 
                 body {
@@ -367,6 +371,129 @@ export default function GlobalReportsPage() {
                     font-weight: 500;
                 }
 
+                /* Nuevos estilos para las secciones de información adicional */
+                .info-section {
+                    background: var(--bg-card);
+                    border: 2px solid var(--border-color);
+                    border-radius: 20px;
+                    box-shadow: var(--shadow-card);
+                    padding: 2rem;
+                    margin-top: 2rem;
+                    position: relative;
+                    overflow: hidden;
+                    transition: all 0.3s ease;
+                }
+
+                .info-section::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 4px;
+                    background: var(--button-gradient);
+                }
+
+                .info-section:hover {
+                    transform: translateY(-4px);
+                    box-shadow: var(--shadow-hover);
+                }
+
+                .section-title {
+                    color: var(--text-primary);
+                    font-size: 1.8rem;
+                    font-weight: 700;
+                    margin-bottom: 1.5rem;
+                    padding-bottom: 1rem;
+                    border-bottom: 2px solid var(--border-color);
+                }
+
+                .info-list {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                }
+
+                .info-list-item {
+                    background: var(--list-bg);
+                    border: 1px solid var(--border-color);
+                    border-radius: 12px;
+                    padding: 1rem 1.5rem;
+                    margin-bottom: 0.75rem;
+                    color: var(--text-primary);
+                    font-size: 1rem;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                }
+
+                .info-list-item::before {
+                    content: '▸';
+                    color: var(--text-secondary);
+                    font-weight: bold;
+                    font-size: 1.2rem;
+                }
+
+                .info-list-item:hover {
+                    background: var(--list-item-hover);
+                    transform: translateX(8px);
+                    border-color: var(--button-gradient);
+                }
+
+                .info-list-item:last-child {
+                    margin-bottom: 0;
+                }
+
+                .status-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 1.5rem;
+                    margin-top: 1.5rem;
+                }
+
+                .status-card {
+                    background: var(--list-bg);
+                    border: 2px solid var(--border-color);
+                    border-radius: 15px;
+                    padding: 1.5rem;
+                    text-align: center;
+                    transition: all 0.3s ease;
+                    position: relative;
+                    overflow: hidden;
+                }
+
+                .status-card::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 3px;
+                    background: var(--stat1-gradient);
+                }
+
+                .status-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: var(--shadow-card);
+                    border-color: var(--stat1-gradient);
+                }
+
+                .status-card-title {
+                    color: var(--text-secondary);
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    margin-bottom: 0.75rem;
+                }
+
+                .status-card-value {
+                    color: var(--text-primary);
+                    font-size: 2rem;
+                    font-weight: 800;
+                }
+
                 .reports-actions {
                     display: flex;
                     justify-content: center;
@@ -399,6 +526,33 @@ export default function GlobalReportsPage() {
                 .loading-icon, .error-icon {
                     font-size: 4rem;
                     margin-bottom: 1rem;
+                }
+
+                @media (max-width: 768px) {
+                    .stats-grid {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .status-grid {
+                        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                    }
+
+                    .modern-title {
+                        font-size: 2rem;
+                    }
+
+                    .section-title {
+                        font-size: 1.5rem;
+                    }
+
+                    .info-section {
+                        padding: 1.5rem;
+                    }
+
+                    .info-list-item {
+                        padding: 0.75rem 1rem;
+                        font-size: 0.95rem;
+                    }
                 }
             `}</style>
 
@@ -467,49 +621,45 @@ export default function GlobalReportsPage() {
                     ) : stats && (
                         <div style={{ marginBottom: '3rem' }}>
                             <div className="stats-grid">
-                                <StatCard title="Total Fichas" value={stats.total_fichas} gradient="var(--stat1-gradient)" icon="📚"/>
-                                <StatCard title="Total Instructores" value={stats.total_instructors} gradient="var(--stat2-gradient)" icon="👨‍🏫"/>
-                                <StatCard title="Total Aprendices" value={stats.total_students} gradient="var(--stat3-gradient)" icon="👥"/>
-                                <StatCard title="Total Sesiones" value={stats.total_sessions} gradient="var(--stat4-gradient)" icon="📅"/>
-                                <StatCard title="Total Excusas" value={stats.total_excuses} gradient="var(--stat5-gradient)" icon="📄"/>
-                                <StatCard title="Excusas Pendientes" value={stats.pending_excuses_count} gradient="var(--stat1-gradient)" icon="🤔"/>
-                                <StatCard title="Excusas Aprobadas" value={stats.approved_excuses_count} gradient="var(--stat2-gradient)" icon="✅"/>
-                                <StatCard title="Excusas Rechazadas" value={stats.rejected_excuses_count} gradient="var(--stat5-gradient)" icon="❌"/>
-                                <StatCard title="% Asistencia General" value={`${stats.overall_attendance_percentage}%`} gradient="var(--stat4-gradient)" icon="📊"/>
+                                <StatCard title={t('global_reports_total_fichas')} value={stats.total_fichas} gradient="var(--stat1-gradient)" icon="📚"/>
+                                <StatCard title={t('global_reports_total_instructors')} value={stats.total_instructors} gradient="var(--stat2-gradient)" icon="👨‍🏫"/>
+                                <StatCard title={t('global_reports_total_students')} value={stats.total_students} gradient="var(--stat3-gradient)" icon="👥"/>
+                                <StatCard title={t('global_reports_total_sessions')} value={stats.total_sessions} gradient="var(--stat4-gradient)" icon="📅"/>
+                                <StatCard title={t('global_reports_total_excuses')} value={stats.total_excuses} gradient="var(--stat5-gradient)" icon="📄"/>
+                                <StatCard title={t('global_reports_pending_excuses')} value={stats.pending_excuses_count} gradient="var(--stat1-gradient)" icon="🤔"/>
+                                <StatCard title={t('global_reports_approved_excuses')} value={stats.approved_excuses_count} gradient="var(--stat2-gradient)" icon="✅"/>
+                                <StatCard title={t('global_reports_rejected_excuses')} value={stats.rejected_excuses_count} gradient="var(--stat5-gradient)" icon="❌"/>
+                                <StatCard title={t('global_reports_overall_attendance_percentage')} value={`${stats.overall_attendance_percentage}%`} gradient="var(--stat4-gradient)" icon="📊"/>
                             </div>
 
-                            <div className="bg-gray-800 p-6 rounded-lg shadow-lg mt-8">
-                                <h2 className="text-2xl font-bold text-white mb-4">Asistencia por Estado</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="info-section">
+                                <h2 className="section-title">{t('global_reports_attendance_by_status_title')}</h2>
+                                <div className="status-grid">
                                     {Object.entries(stats.attendance_by_status).map(([status, count]) => (
-                                        <StatCard key={status} title={status.charAt(0).toUpperCase() + status.slice(1)} value={count} gradient="var(--stat1-gradient)" icon="✨"/>
+                                        <div key={status} className="status-card">
+                                            <div className="status-card-title">{t(`attendance_status_${status}`)}</div>
+                                
+                                        </div>
                                     ))}
                                 </div>
                             </div>
 
-                            <div className="bg-gray-800 p-6 rounded-lg shadow-lg mt-8">
-                                <h2 className="text-2xl font-bold text-white mb-4">Top 5 Fichas con Más Inasistencias</h2>
-                                <ul className="list-disc list-inside text-gray-300">
+                            <div className="info-section">
+                                <h2 className="section-title">{t('global_reports_top5_fichas_absences')}</h2>
+                                <ul className="info-list">
                                     {stats.fichas_con_mas_inasistencias.map((item, index) => (
-                                        <li key={index}>{item}</li>
+                                        <li key={index} className="info-list-item">{item}</li>
                                     ))}
                                 </ul>
                             </div>
 
-                            <div className="bg-gray-800 p-6 rounded-lg shadow-lg mt-8">
-                                <h2 className="text-2xl font-bold text-white mb-4">Top 5 Estudiantes con Más Inasistencias</h2>
-                                <ul className="list-disc list-inside text-gray-300">
-                                    {stats.students_con_mas_inasistencias.map((item, index) => (
-                                        <li key={index}>{item}</li>
-                                    ))}
-                                </ul>
-                            </div>
+                            
 
-                            <div className="bg-gray-800 p-6 rounded-lg shadow-lg mt-8">
-                                <h2 className="text-2xl font-bold text-white mb-4">Top 5 Instructores con Más Sesiones</h2>
-                                <ul className="list-disc list-inside text-gray-300">
+                            <div className="info-section">
+                                <h2 className="section-title">{t('global_reports_top5_instructors_sessions')}</h2>
+                                <ul className="info-list">
                                     {stats.instructores_con_mas_sesiones.map((item, index) => (
-                                        <li key={index}>{item}</li>
+                                        <li key={index} className="info-list-item">{item}</li>
                                     ))}
                                 </ul>
                             </div>

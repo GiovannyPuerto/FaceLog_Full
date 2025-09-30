@@ -5,6 +5,7 @@ import api from '../../../../lib/api';
 import useAuth from '../../../../hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 import { useHydrated } from '../../../../hooks/useHydrated';
+import axios from 'axios';
 
 // Simple Modal Component with theme support
 const Modal = ({ children, onClose }) => (
@@ -39,6 +40,55 @@ export default function ManageExcusesPage() {
     const [currentExcuseToReview, setCurrentExcuseToReview] = useState(null);
     const [reviewComment, setReviewComment] = useState('');
     const [filters, setFilters] = useState({ student: '', date_from: '', date_to: '', status: 'pending' });
+
+    const handleViewAttachment = async (url) => {
+        if (typeof window !== 'undefined') {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert('Authentication token not found. Please log in again.');
+                return;
+            }
+            try {
+                const response = await axios.get(url, {
+                    responseType: 'blob',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const file = new Blob([response.data], { type: response.headers['content-type'] });
+                const fileURL = URL.createObjectURL(file);
+                
+                const filename = decodeURIComponent(url.substring(url.lastIndexOf('/') + 1));
+                const newWindow = window.open('', '_blank');
+
+                if (newWindow) {
+                    newWindow.document.title = filename;
+                    const iframe = newWindow.document.createElement('iframe');
+                    iframe.src = fileURL;
+                    iframe.style.width = '100%';
+                    iframe.style.height = '100%';
+                    iframe.style.border = 'none';
+                    iframe.style.margin = '0';
+                    iframe.style.padding = '0';
+                    iframe.style.overflow = 'hidden';
+                    
+                    newWindow.document.body.style.margin = '0';
+                    newWindow.document.body.appendChild(iframe);
+                    
+                    newWindow.addEventListener('unload', () => {
+                        URL.revokeObjectURL(fileURL);
+                    });
+                } else {
+                    alert('Popup blocked! Please allow popups for this site to view attachments.');
+                    // Fallback to old method
+                    window.open(fileURL, '_blank');
+                }
+            } catch (error) {
+                console.error('Error downloading file:', error);
+                alert('Could not download file.');
+            }
+        }
+    };
 
     const fetchExcuses = async () => {
         if (!user || user.role !== 'instructor') return;
@@ -742,15 +792,13 @@ export default function ManageExcusesPage() {
                                                             <div className="excuse-meta">
                                                                 {t('manage_excuses.excuse_card_session', { date: new Date(excuse.session.date).toLocaleDateString('es-CO') })}
                                                             </div>
-                                                            {excuse.attachment && (
-                                                                <a 
-                                                                    href={excuse.attachment} 
-                                                                    target="_blank" 
-                                                                    rel="noopener noreferrer" 
+                                                            {excuse.document_url && (
+                                                                <button 
+                                                                    onClick={() => handleViewAttachment(excuse.document_url)} 
                                                                     className="attachment-link"
                                                                 >
                                                                     📎 {t('manage_excuses.view_attachment')}
-                                                                </a>
+                                                                </button>
                                                             )}
                                                         </div>
                                                         <div className="excuse-actions">
@@ -805,16 +853,14 @@ export default function ManageExcusesPage() {
                     <div className="modal-reason">
                         <strong>{t('manage_excuses.reason_label')}</strong> {currentExcuseToReview.reason}
                     </div>
-                    {currentExcuseToReview.document && (
+                    {currentExcuseToReview.document_url && (
                         <div style={{ marginBottom: '1rem' }}>
-                            <a 
-                                href={currentExcuseToReview.document} 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
+                            <button 
+                                onClick={() => handleViewAttachment(currentExcuseToReview.document_url)} 
                                 className="attachment-link"
                             >
                                 📎 {t('manage_excuses.view_attachment')}
-                            </a>
+                            </button>
                         </div>
                     )}
                     <div className="form-group" style={{ marginTop: '1.5rem' }}>

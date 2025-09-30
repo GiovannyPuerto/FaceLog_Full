@@ -5,6 +5,8 @@ import api from '../../../../lib/api';
 import useAuth from '../../../../hooks/useAuth';
 import { Container, Card, Button, Table, Form, Row, Col, Modal, Alert, Spinner } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
+import { useHydrated } from '../../../../hooks/useHydrated';
+import LoadingSpinner from '../../../../components/LoadingSpinner';
 
 export default function ManageSessionsPage() {
     const { t } = useTranslation();
@@ -16,6 +18,7 @@ export default function ManageSessionsPage() {
     const [showModal, setShowModal] = useState(false);
     const [editingSession, setEditingSession] = useState(null);
     const [filters, setFilters] = useState({ date: '', ficha: '', is_active: '' });
+    const hydrated = useHydrated();
 
     const fetchSessions = async () => {
         if (!user || user.role !== 'instructor') return;
@@ -93,6 +96,10 @@ export default function ManageSessionsPage() {
     const handleApplyFilters = () => {
         fetchSessions();
     };
+
+    if (!hydrated) {
+        return <LoadingSpinner />;
+    }
 
     if (loading) {
         return (

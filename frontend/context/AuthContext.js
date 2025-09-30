@@ -54,8 +54,6 @@ export const AuthProvider = ({ children }) => {
                 fullName: decodedToken.full_name,
             };
             setUser(userData);
-            setLoading(false);
-
             // Redirect based on role
             switch (userData.role) {
                 case 'instructor':
@@ -70,6 +68,10 @@ export const AuthProvider = ({ children }) => {
                 default:
                     router.push('/login');
             }
+            // Retraso para que el spinner sea visible durante la transición
+            setTimeout(() => {
+                setLoading(false);
+            }, 500);
         } catch (err) {
             setError('Failed to login. Please check your credentials.');
             console.error(err);
@@ -86,6 +88,7 @@ export const AuthProvider = ({ children }) => {
                     'Content-Type': 'multipart/form-data',
                 },
             });
+            setLoading(false);
             router.push('/login?registration=success');
         } catch (err) {
             console.error(err);

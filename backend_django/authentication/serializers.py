@@ -7,6 +7,7 @@ from attendance.models import Ficha
 from face_recognition_app.models import FaceEncoding
 from face_recognition_app.services import get_face_encoding_from_image
 import face_recognition
+import numpy as np
 
 User = get_user_model()
 
@@ -145,31 +146,46 @@ class RegisterStudentSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        from django.db import IntegrityError
+
         ficha_numero = validated_data.pop('ficha_numero')
         face_image = validated_data.pop('face_image') # Pop the single image
         face_encoding = validated_data.pop('face_encoding') # Pop the single encoding
         
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'],
-            email=validated_data['email'],
-            student_id=validated_data['student_id'],
-            role='student'  # Rol asignado por defecto
-        )
-        user.set_password(validated_data['password'])
-        user.save()
+        try:
+            user = User.objects.create_user(
+                username=validated_data['username'],
+                first_name=validated_data['first_name'],
+                last_name=validated_data['last_name'],
+                email=validated_data['email'],
+                student_id=validated_data['student_id'],
+                role='student'  # Rol asignado por defecto
+            )
+            user.set_password(validated_data['password'])
+            user.save()
 
-        # Inscribir al estudiante en la ficha
-        ficha = Ficha.objects.get(numero_ficha=ficha_numero)
-        ficha.students.add(user)
+            # Inscribir al estudiante en la ficha
+            ficha = Ficha.objects.get(numero_ficha=ficha_numero)
+            ficha.students.add(user)
 
-        # Guardar la codificación facial
-        face_encoding_obj = FaceEncoding(user=user, profile_image=face_image)
-        face_encoding_obj.set_encoding_array(face_encoding)
-        face_encoding_obj.save()
+            # Guardar la codificación facial
+            face_encoding_obj = FaceEncoding(user=user, profile_image=face_image)
+            face_encoding_obj.set_encoding_array(face_encoding)
+            face_encoding_obj.save()
 
-        return user
+            return user
+        except IntegrityError as e:
+            errors = {}
+            error_message = str(e).lower()
+            if 'username' in error_message:
+                errors['username'] = ['Este nombre de usuario ya existe.']
+            elif 'email' in error_message:
+                errors['email'] = ['Este correo electrónico ya está en uso.']
+            elif 'student_id' in error_message:
+                errors['student_id'] = ['Este ID de estudiante ya está registrado.']
+            else:
+                errors['non_field_errors'] = ['Error de integridad de datos. Un valor único ya existe.']
+            raise serializers.ValidationError(errors)
 
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
