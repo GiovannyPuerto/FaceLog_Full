@@ -83,18 +83,26 @@ def recognize_faces_in_stream(image_file, session_id):
         recognized_students = []
         for i, stream_encoding in enumerate(stream_encodings):
             logger.info(f"Procesando cara {i+1} de {len(stream_encodings)}...")
-            distances = face_recognition.face_distance(known_encodings, stream_encoding)
-            logger.info(f"Distancias para la cara {i+1}: {distances}")
 
-            best_match_index = np.argmin(distances)
-            min_distance = distances[best_match_index]
-            
+            # Usar compare_faces para una lógica más robusta
+            matches = face_recognition.compare_faces(known_encodings, stream_encoding, tolerance=settings.confidence_threshold)
+            matched_indices = [i for i, match in enumerate(matches) if match]
+
             matched_student_id = None
-            if min_distance <= settings.confidence_threshold:
-                matched_student_id = known_student_ids[best_match_index]
-                logger.info(f"¡Coincidencia encontrada! Estudiante ID: {matched_student_id} con distancia: {min_distance}")
+            if len(matched_indices) == 1:
+                # Coincidencia única y clara
+                matched_student_id = known_student_ids[matched_indices[0]]
+                distance = face_recognition.face_distance([known_encodings[matched_indices[0]]], stream_encoding)[0]
+                logger.info(f"¡Coincidencia única encontrada! Estudiante ID: {matched_student_id} con distancia: {distance:.4f}")
+            elif len(matched_indices) > 1:
+                # Múltiples coincidencias, posible ambigüedad
+                distances = face_recognition.face_distance([known_encodings[i] for i in matched_indices], stream_encoding)
+                ambiguous_ids = [known_student_ids[i] for i in matched_indices]
+                logger.warning(f"Ambigüedad detectada. Múltiples ({len(matched_indices)}) coincidencias por debajo del umbral para la cara {i+1}. IDs: {ambiguous_ids}. Distancias: {distances}")
             else:
-                logger.warning(f"No hubo coincidencia para la cara {i+1}. Distancia mínima: {min_distance}")
+                # Ninguna coincidencia por debajo del umbral
+                min_distance = np.min(face_recognition.face_distance(known_encodings, stream_encoding))
+                logger.warning(f"No hubo coincidencia para la cara {i+1}. Distancia mínima: {min_distance:.4f} (Umbral: {settings.confidence_threshold})")
 
             if matched_student_id:
                 try:

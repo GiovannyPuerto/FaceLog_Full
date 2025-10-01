@@ -7,6 +7,7 @@ import { Container, Card, Button, Form, Badge, Row, Col, Spinner, Alert } from '
 import { useTranslation } from 'react-i18next';
 import { useHydrated } from '../../../../hooks/useHydrated';
 import LoadingSpinner from '../../../../components/LoadingSpinner';
+import '../../../../styles/AprendizAttendance.css';
 
 // Helper para obtener color basado en estado
 const getStatusColor = (status) => {
@@ -17,6 +18,20 @@ const getStatusColor = (status) => {
         case 'excused': return 'info';
         default: return 'secondary';
     }
+};
+
+// Helper function to format date correctly
+const formatDate = (dateString) => {
+    if (!dateString) return '';
+    // The date string from the backend is 'YYYY-MM-DD'. 
+    // Appending 'T00:00:00Z' makes it explicitly UTC.
+    const date = new Date(`${dateString}T00:00:00Z`);
+    return date.toLocaleDateString('es-CO', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'UTC' // Display the date as it is in UTC
+    });
 };
 
 export default function StudentAttendancePage() {
@@ -234,7 +249,7 @@ export default function StudentAttendancePage() {
                                     <div>
                                         <p className="font-semibold text-white">Sesión: {log.session.ficha.numero_ficha} - {new Date(log.session.date).toLocaleDateString('es-CO')}</p>
                                         {log.check_in_time && log.check_in_time.trim() !== '' && (
-                                            <p className="text-sm text-gray-400">Hora: {new Date(log.check_in_time).toLocaleTimeString()}</p>
+                                            <p className="text-sm text-gray-400">Hora: {new Date(log.check_in_time).toLocaleTimeString('es-CO')}</p>
                                         )}
 
                 [data-theme="dark"] .modern-attendance-item:hover {
@@ -535,11 +550,11 @@ export default function StudentAttendancePage() {
                                         <div key={log.id} className="modern-attendance-item">
                                             <div className="modern-session-info">
                                                 <h6>
-                                                    {t('student_attendance.session')}: {log.session.ficha.numero_ficha} - {new Date(log.session.date).toLocaleDateString()}
+                                                    {t('student_attendance.session')}: {log.session.ficha.numero_ficha} - {formatDate(log.session.date)}
                                                 </h6>
                                                 {log.check_in_time && (
                                                     <div className="modern-time-info">
-                                                        {t('student_attendance.time')}: {new Date(log.check_in_time).toLocaleTimeString()}
+                                                        {t('student_attendance.time')}: {new Date(log.check_in_time).toLocaleTimeString('es-CO')}
                                                     </div>
                                                 )}
                                             </div>
