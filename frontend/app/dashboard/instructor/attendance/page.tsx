@@ -5,6 +5,7 @@ import api from '../../../../lib/api';
 import useAuth from '../../../../hooks/useAuth';
 import { Container, Card, Button, Modal, Form, Badge, Row, Col, Spinner, Alert } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
+import '../../../../styles/InstructorAttendance.css'
 
 declare global {
     interface Window {
@@ -380,8 +381,6 @@ export default function TakeAttendancePage() {
                         }
                     }
                 `}</style>
-
-
                 <div className="modern-attendance-container d-flex align-items-center justify-content-center">
                     <Card className="modern-select-card">
                         <Card.Body className="p-5">
@@ -810,8 +809,6 @@ export default function TakeAttendancePage() {
                     }
                 }
             `}</style>
-
-
             <div className="modern-attendance-active-container">
                 <Container fluid className="h-100">
                     {/* Header de sesión activa */}

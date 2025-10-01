@@ -129,7 +129,7 @@ class FaceRecognitionSettings(models.Model):
     Configuraciones globales para el sistema de reconocimiento facial.
     """
     confidence_threshold = models.FloatField(
-        default=0.6,
+        default=0.55,
         help_text="Umbral de confianza para considerar una coincidencia válida (menor valor = más estricto)"
     )
     max_verification_attempts = models.IntegerField(
@@ -169,7 +169,7 @@ class FaceRecognitionSettings(models.Model):
         settings, created = cls.objects.get_or_create(
             is_active=True,
             defaults={
-                'confidence_threshold': 0.6,
+                'confidence_threshold': 0.55,
                 'max_verification_attempts': 3,
                 'face_detection_model': 'hog',
                 'enable_logging': True,

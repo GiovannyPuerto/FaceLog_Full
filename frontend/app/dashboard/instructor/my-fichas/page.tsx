@@ -7,11 +7,14 @@ import useAuth from '../../../../hooks/useAuth';
 import { useTranslation } from 'react-i18next';
 import '../../../../i18n';
 import { Sun, Moon, Globe } from 'lucide-react';
+import { useHydrated } from '../../../../hooks/useHydrated';
+import '../../../../styles/InstructorMy-fichas.css';
 
 export default function MyFichasPage() {
     const { user } = useAuth();
     const { t, i18n } = useTranslation();
     const [theme, setTheme] = useState('light');
+    const hydrated = useHydrated();
 
     useEffect(() => {
         const savedTheme = localStorage.getItem('theme') || 'light';
@@ -71,519 +74,74 @@ export default function MyFichasPage() {
     return (
         <>
             <style jsx global>{`
-                :root {
-                    --bg-primary: #f8f9fa;
-                    --bg-card: #ffffff;
-                    --bg-secondary: #e9ecef;
-                    --text-primary: #232129ff;
-                    --text-secondary: #6c757d;
-                    --text-muted: #8b949e;
-                    --text-accent: #667eea;
-                    --border-color: #e9ecef;
-                    --button-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    --button-hover: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
-                    --shadow-card: 0 8px 25px rgba(0, 0, 0, 0.08);
-                    --shadow-hover: 0 12px 35px rgba(0, 0, 0, 0.12);
-                    --success-gradient: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
-                    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                    --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                    --input-bg: #ffffff;
-                    --input-border: #e9ecef;
-                    --divider-color: #e9ecef;
-                }
-
-                [data-theme="dark"] {
-                    --bg-primary: #0d1117;
-                    --bg-card: #161b22;
-                    --bg-secondary: #21262d;
-                    --text-primary: #f0f6fc;
-                    --text-secondary: #8b949e;
-                    --text-muted: #6e7681;
-                    --text-accent: #58a6ff;
-                    --border-color: #30363d;
-                    --button-gradient: linear-gradient(135deg, #58a6ff 0%, #1f6feb 100%);
-                    --button-hover: linear-gradient(135deg, #4493f8 0%, #1b5fc1 100%);
-                    --shadow-card: 0 8px 25px rgba(0, 0, 0, 0.3);
-                    --shadow-hover: 0 12px 35px rgba(0, 0, 0, 0.4);
-                    --success-gradient: linear-gradient(135deg, #238636 0%, #2ea043 100%);
-                    --info-gradient: linear-gradient(135deg, #58a6ff 0%, #388bfd 100%);
-                    --warning-gradient: linear-gradient(135deg, #d29922 0%, #bb8009 100%);
-                    --input-bg: #21262d;
-                    --input-border: #30363d;
-                    --divider-color: #30363d;
-                }
-
-                body {
-                    background: var(--bg-primary);
-                    color: var(--text-primary);
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-                    transition: all 0.3s ease;
-                    min-height: 100vh;
-                }
-
-                .fichas-container {
-                    background: var(--bg-primary);
-                    min-height: 100vh;
-                    padding: 30px 20px;
-                    transition: background-color 0.3s ease;
-                }
-
-                .modern-title {
-                    color: var(--text-primary);
-                    font-weight: 800;
-                    font-size: 2.5rem;
-                    margin-bottom: 2rem;
-                    position: relative;
-                    background: var(--button-gradient);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    background-clip: text;
-                    display: flex;
-                    align-items: center;
-                    gap: 1rem;
-                }
-
-                .modern-title::after {
-                    content: '';
-                    position: absolute;
-                    bottom: -15px;
-                    left: 0;
-                    width: 120px;
-                    height: 5px;
-                    background: var(--button-gradient);
-                    border-radius: 3px;
-                }
-
-                .filter-section {
-                    background: var(--bg-card);
-                    border: 2px solid var(--border-color);
-                    border-radius: 20px;
-                    box-shadow: var(--shadow-card);
-                    padding: 1.5rem;
-                    margin-bottom: 2rem;
-                    position: relative;
-                    overflow: hidden;
-                }
-
-                .filter-section::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    height: 4px;
-                    background: var(--button-gradient);
-                }
-
-                .filter-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                    gap: 1.5rem;
-                    align-items: end;
-                }
-
-                .form-group {
-                    display: flex;
-                    flex-direction: column;
-                }
-
-                .form-label {
-                    color: var(--text-secondary);
-                    font-weight: 600;
-                    font-size: 0.9rem;
-                    margin-bottom: 0.5rem;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                }
-
-                .form-input {
-                    background: var(--input-bg);
-                    border: 2px solid var(--input-border);
-                    border-radius: 12px;
-                    padding: 12px 16px;
-                    color: var(--text-primary);
-                    font-size: 1rem;
-                    transition: all 0.3s ease;
-                }
-
-                .form-input:focus {
-                    outline: none;
-                    border-color: var(--text-accent);
-                    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-                    transform: translateY(-1px);
-                }
-
-                .modern-button {
-                    background: var(--button-gradient);
-                    border: none;
-                    border-radius: 12px;
-                    padding: 12px 24px;
-                    color: white;
-                    font-weight: 700;
-                    font-size: 1rem;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                }
-
-                .modern-button:hover {
-                    background: var(--button-hover);
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-                }
-
-                .fichas-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-                    gap: 2rem;
-                }
-
-                .ficha-card {
-                    background: var(--bg-card);
-                    border: 2px solid var(--border-color);
-                    border-radius: 20px;
-                    box-shadow: var(--shadow-card);
-                    transition: all 0.3s ease;
-                    overflow: hidden;
-                    position: relative;
-                }
-
-                .ficha-card::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    height: 5px;
-                    background: var(--info-gradient);
-                }
-
-                .ficha-card:hover {
-                    transform: translateY(-8px);
-                    box-shadow: var(--shadow-hover);
-                    border-color: var(--text-accent);
-                }
-
-                .ficha-header {
-                    padding: 1.5rem 1.5rem 1rem;
-                }
-
-                .ficha-numero {
-                    color: var(--text-accent);
-                    font-weight: 800;
-                    font-size: 1.4rem;
-                    margin-bottom: 0.5rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                }
-
-                .ficha-programa {
-                    color: var(--text-primary);
-                    font-size: 1.1rem;
-                    font-weight: 600;
-                    line-height: 1.4;
-                    margin-bottom: 1rem;
-                }
-
-                .ficha-details {
-                    padding: 0 1.5rem;
-                }
-
-                .detail-item {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 0.75rem 0;
-                    border-bottom: 1px solid var(--divider-color);
-                    color: var(--text-secondary);
-                    font-size: 0.95rem;
-                }
-
-                .detail-item:last-child {
-                    border-bottom: none;
-                }
-
-                .detail-label {
-                    font-weight: 600;
-                    color: var(--text-secondary);
-                }
-
-                .detail-value {
-                    font-weight: 500;
-                    color: var(--text-primary);
-                }
-
-                .ficha-footer {
-                    padding: 1rem 1.5rem 1.5rem;
-                    background: var(--bg-secondary);
-                    border-top: 2px solid var(--divider-color);
-                }
-
-                .students-count {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75rem;
-                    font-weight: 700;
-                    color: var(--text-primary);
-                    font-size: 1.1rem;
-                }
-
-                .students-icon {
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    background: var(--success-gradient);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: white;
-                    font-size: 1.2rem;
-                }
-
-                .loading-container, .error-container, .empty-container {
-                    text-align: center;
-                    padding: 4rem 2rem;
-                    background: var(--bg-card);
-                    border-radius: 20px;
-                    border: 2px solid var(--border-color);
-                    box-shadow: var(--shadow-card);
-                    margin: 2rem 0;
-                }
-
-                .loading-text, .error-text, .empty-text {
-                    color: var(--text-secondary);
-                    font-size: 1.2rem;
-                    font-weight: 600;
-                    margin-top: 1rem;
-                }
-
-                .error-text {
-                    color: #f85149;
-                }
-
-                .loading-icon, .error-icon, .empty-icon {
-                    font-size: 4rem;
-                    margin-bottom: 1rem;
-                }
-
-                .theme-toggle {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    background: var(--bg-card);
-                    border: 2px solid var(--border-color);
-                    border-radius: 50%;
-                    width: 55px;
-                    height: 55px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    color: var(--text-primary);
-                    box-shadow: var(--shadow-card);
-                    font-size: 1.2rem;
-                    z-index: 9999;
-                }
-
-                .theme-toggle:hover {
-                    transform: scale(1.1) rotate(180deg);
-                    box-shadow: var(--shadow-hover);
-                }
-
-                .control-buttons-container {
-                    position: fixed;
-                    top: 20px;
-                    right: 20px;
-                    display: flex;
-                    gap: 10px;
-                    z-index: 1000;
-                }
-
-                .control-button {
-                    background: var(--bg-card);
-                    border: 2px solid var(--border-color);
-                    border-radius: 50%;
-                    width: 55px;
-                    height: 55px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    color: var(--text-primary);
-                    box-shadow: var(--shadow-card);
-                    font-size: 1.2rem;
-                }
-
-                .control-button:hover {
-                    transform: scale(1.1) rotate(12deg);
-                    box-shadow: var(--shadow-hover);
-                }
                 
-                .language-text {
-                    font-size: 0.9rem;
-                    font-weight: 700;
-                }
-
-                .action-link-button {
-                    background: var(--info-gradient); /* Using info-gradient for a different look */
-                    border: none;
-                    border-radius: 8px; /* Slightly smaller border-radius */
-                    padding: 8px 16px; /* Smaller padding */
-                    color: white;
-                    font-weight: 600; /* Slightly less bold */
-                    font-size: 0.9rem; /* Smaller font size */
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    text-decoration: none; /* Remove underline for links */
-                }
-
-                .action-link-button:hover {
-                    background: linear-gradient(135deg, #388bfd 0%, #4facfe 100%); /* Slightly darker hover for info-gradient */
-                    transform: translateY(-1px); /* Less pronounced hover effect */
-                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Smaller shadow */
-                }
-
-                .action-link-button.report {
-                    background: var(--button-gradient); /* Use original button gradient for report */
-                }
-
-                .action-link-button.report:hover {
-                    background: var(--button-hover);
-                }
-
-                .action-link-button.attendance {
-                    background: var(--success-gradient); /* Use success gradient for attendance */
-                }
-
-                .action-link-button.attendance:hover {
-                    background: linear-gradient(135deg, #2ea043 0%, #56ab2f 100%); /* Darker hover for success-gradient */
-                }
-
-                @media (max-width: 768px) {
-                    .fichas-container {
-                        padding: 20px 15px;
-                    }
-                    
-                    .modern-title {
-                        font-size: 2rem;
-                        margin-bottom: 1.5rem;
-                    }
-                    
-                    .filter-grid {
-                        grid-template-columns: 1fr;
-                        gap: 1rem;
-                    }
-                    
-                    .fichas-grid {
-                        grid-template-columns: 1fr;
-                        gap: 1.5rem;
-                    }
-                    
-                    .theme-toggle {
-                        top: 15px;
-                        right: 15px;
-                        width: 45px;
-                        height: 45px;
-                        font-size: 1rem;
-                    }
-                }
-
-                @media (max-width: 576px) {
-                    .ficha-header {
-                        padding: 1rem 1rem 0.75rem;
-                    }
-                    
-                    .ficha-details {
-                        padding: 0 1rem;
-                    }
-                    
-                    .ficha-footer {
-                        padding: 0.75rem 1rem 1rem;
-                    }
-                    
-                    .detail-item {
-                        flex-direction: column;
-                        align-items: flex-start;
-                        gap: 0.25rem;
-                    }
-                }
             `}</style>
 
 
-            <div className="control-buttons-container">
-                <div 
-                    className="control-button"
-                    onClick={toggleTheme}
-                    title={t('common_change_theme')}
-                >
-                    {theme === 'light' ? <Moon size={22} /> : <Sun size={22} />}
+                        {hydrated && (
+                <div className="control-buttons-container">
+                    <div 
+                        className="control-button"
+                        onClick={toggleTheme}
+                        title={t('common_change_theme')}
+                    >
+                        {theme === 'light' ? <Moon size={22} /> : <Sun size={22} />}
+                    </div>
+                    <div 
+                        className="control-button"
+                        onClick={toggleLanguage}
+                        title={t('common_change_language')}
+                    >
+                        <Globe size={22} />
+                        <span className="language-text ms-1">{i18n.language.toUpperCase()}</span>
+                    </div>
                 </div>
-                <div 
-                    className="control-button"
-                    onClick={toggleLanguage}
-                    title={t('common_change_language')}
-                >
-                    <Globe size={22} />
-                    <span className="language-text ms-1">{i18n.language.toUpperCase()}</span>
-                </div>
-            </div>
+            )}
 
             <div className="fichas-container">
                 <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
                     <h1 className="modern-title">
-                         {t('my_fichas_title')}
+                         {hydrated ? t('my_fichas_title') : <>&nbsp;</>}
                     </h1>
 
                     {/* Filter Section */}
                     <div className="filter-section">
                         <div className="filter-grid">
                             <div className="form-group">
-                                <label className="form-label">{t('my_fichas_filter_number_label')}</label>
+                                <label className="form-label">{hydrated ? t('my_fichas_filter_number_label') : <>&nbsp;</>}</label>
                                 <input 
                                     type="text" 
                                     name="numero_ficha" 
                                     value={filters.numero_ficha} 
                                     onChange={handleFilterChange} 
                                     className="form-input"
-                                    placeholder={t('my_fichas_filter_number_placeholder')}
+                                    placeholder={hydrated ? t('my_fichas_filter_number_placeholder') : ''}
                                 />
                             </div>
                             <div className="form-group">
-                                <label className="form-label">{t('my_fichas_filter_program_label')}</label>
+                                <label className="form-label">{hydrated ? t('my_fichas_filter_program_label') : <>&nbsp;</>}</label>
                                 <input 
                                     type="text" 
                                     name="programa_formacion" 
                                     value={filters.programa_formacion} 
                                     onChange={handleFilterChange} 
                                     className="form-input"
-                                    placeholder={t('my_fichas_filter_program_placeholder')}
+                                    placeholder={hydrated ? t('my_fichas_filter_program_placeholder') : ''}
                                 />
                             </div>
                             <div className="form-group">
                                 <button onClick={handleApplyFilters} className="modern-button">
-                                     {t('my_fichas_filter_button')}
+                                     {hydrated ? t('my_fichas_filter_button') : <>&nbsp;</>}
                                 </button>
 
                             </div>
                         </div>
                     </div>
 
-                    {loading ? (
+                    {(!hydrated || loading) ? (
                         <div className="loading-container">
                             <div className="loading-icon"></div>
-                            <div className="loading-text">{t('my_fichas_loading')}</div>
+                            <div className="loading-text">Cargando...</div>
                         </div>
                     ) : error ? (
                         <div className="error-container">
