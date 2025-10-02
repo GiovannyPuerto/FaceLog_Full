@@ -10,11 +10,11 @@ import { useTranslation } from 'react-i18next';
 import '../i18n';
 
 const Sidebar = () => {
-    const { user, isSidebarOpen, toggleSidebar } = useAuth();
+    const { user, isSidebarOpen, toggleSidebar, loggingOut } = useAuth();
     const pathname = usePathname();
     const { t } = useTranslation();
 
-    if (!user) {
+    if (!user || loggingOut) {
         return null;
     }
 

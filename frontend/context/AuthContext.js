@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isSidebarOpen, setSidebarOpen] = useState(false);
+    const [loggingOut, setLoggingOut] = useState(false);
     const router = useRouter();
 
     const toggleSidebar = () => {
@@ -111,13 +112,16 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
-        setUser(null);
-        localStorage.removeItem('authToken');
-        router.push('/login');
+        setLoggingOut(true);
+        setTimeout(() => {
+            setUser(null);
+            localStorage.removeItem('authToken');
+            router.push('/login');
+        }, 300);
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, error, login, register, logout }}>
+        <AuthContext.Provider value={{ user, loading, error, login, register, logout, isSidebarOpen, toggleSidebar, loggingOut }}>
             {children}
         </AuthContext.Provider>
     );
