@@ -9,7 +9,7 @@ import LoadingSpinner from '../components/LoadingSpinner'; // Importar LoadingSp
 import { usePathname } from 'next/navigation';
 
 function AppLayout({ children }) {
-    const { user, isSidebarOpen, loading } = useAuth(); // Obtener el estado loading
+    const { user, isSidebarOpen, loading, loggingOut } = useAuth(); // Obtener el estado loading
     const pathname = usePathname();
 
     const noLayoutPages = ['/login', '/register', '/forgot-password', '/reset-password'];
@@ -34,7 +34,7 @@ function AppLayout({ children }) {
                         flex: 1,
                         overflowY: 'auto',
                         marginTop: showLayout ? '0px' : '0',
-                        marginLeft: showLayout && isSidebarOpen ? '225px' : '0px',
+                        marginLeft: (showLayout && isSidebarOpen && !loggingOut) ? '225px' : '0px',
                         transition: 'all 0.3s ease',
                         padding: '1rem'
                     }}
